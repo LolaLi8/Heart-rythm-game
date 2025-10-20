@@ -1,1 +1,1 @@
-# Heart-rythm-game
+# Heart-rhythm-game
