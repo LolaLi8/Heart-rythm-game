@@ -370,7 +370,7 @@
     </style>
 </head>
 <body>
-    <!-- iPhone 调试信息 -->
+    <!-- iPhone Debug Info -->
     <div id="iphone-debug" style="position: fixed; top: 10px; right: 10px; background: blue; color: white; padding: 8px; z-index: 1000; font-size: 12px; border-radius: 5px; display: none;">
         iPhone Debug
     </div>
@@ -387,16 +387,16 @@
             Match the target heart rhythm by tapping or using your voice. In this mode, you'll match a regular, healthy heartbeat pattern typical of someone in love.
         </div>
 
-        <!-- iPhone 专用提示 -->
+        <!-- iPhone Specific Instructions -->
         <div class="iphone-help" id="iphone-help">
-            <h4>📱 iPhone 专用说明</h4>
-            <p>1. <strong>先用力点击屏幕任意位置</strong></p>
-            <p>2. 等待"音频已激活"提示</p>
-            <p>3. 然后点击"播放声音"按钮</p>
-            <p>4. 如果没声音，重复步骤1</p>
+            <h4>📱 iPhone Specific Instructions</h4>
+            <p>1. <strong>FIRST tap anywhere on screen firmly</strong></p>
+            <p>2. Wait for "Audio Activated" confirmation</p>
+            <p>3. Then tap "Play Heartbeat Sound" button</p>
+            <p>4. If no sound, repeat step 1</p>
         </div>
 
-        <!-- 普通移动端提示 -->
+        <!-- General Mobile Instructions -->
         <div class="mobile-help" id="mobile-help">
             <h4>📱 Mobile Instructions</h4>
             <p>1. Tap anywhere on screen first</p>
@@ -505,7 +505,7 @@
         let bufferLength;
         let canvasCtx;
 
-        // iPhone 专用变量
+        // iPhone specific variables
         let audioActivated = false;
         let isIPhone = false;
         
@@ -535,9 +535,9 @@
         const iphoneHelp = document.getElementById('iphone-help');
         const iphoneDebug = document.getElementById('iphone-debug');
 
-        // ==================== iPhone 专用修复函数 ====================
+        // ==================== iPhone Specific Fix Functions ====================
         
-        // 检测 iPhone 设备
+        // Detect iPhone devices
         function detectIPhone() {
             const userAgent = navigator.userAgent;
             isIPhone = /iPhone|iPad|iPod/.test(userAgent);
@@ -554,16 +554,16 @@
             return isIOS;
         }
 
-        // iPhone 音频修复
+        // iPhone audio fixes
         function fixIPhoneAudio() {
             console.log("Applying iPhone audio fixes");
             
-            // 显示 iPhone 专用提示
+            // Show iPhone specific instructions
             iphoneHelp.style.display = 'block';
             iphoneDebug.style.display = 'block';
-            feedbackDisplay.textContent = "iPhone: 请先用力点击屏幕激活音频";
+            feedbackDisplay.textContent = "iPhone: Please tap screen firmly to activate audio";
             
-            // 预加载音频上下文
+            // Pre-load audio context
             setTimeout(() => {
                 if (!audioContext) {
                     try {
@@ -575,7 +575,7 @@
                 }
             }, 500);
 
-            // 全局触摸激活
+            // Global touch activation
             document.addEventListener('touchstart', function activateIPhoneAudio(e) {
                 console.log("iPhone: Touch detected", e.touches.length);
                 
@@ -588,35 +588,35 @@
                         audioContext.resume().then(() => {
                             console.log("iPhone: AudioContext resumed successfully");
                             audioActivated = true;
-                            feedbackDisplay.textContent = "✅ 音频已激活！现在可以播放声音";
-                            iphoneHelp.innerHTML = '<h4>✅ 音频已激活</h4><p>现在可以点击"播放声音"按钮</p>';
+                            feedbackDisplay.textContent = "✅ Audio Activated! You can now play sounds";
+                            iphoneHelp.innerHTML = '<h4>✅ Audio Activated</h4><p>You can now tap "Play Heartbeat Sound"</p>';
                             
-                            // 播放确认声音
+                            // Play confirmation sound
                             playIPhoneSingleBeat(440, 0.1);
                         }).catch(err => {
                             console.error("iPhone: AudioContext resume failed:", err);
-                            feedbackDisplay.textContent = "❌ 音频激活失败，请再次点击屏幕";
+                            feedbackDisplay.textContent = "❌ Audio activation failed, please tap screen again";
                         });
                     } else {
                         audioActivated = true;
-                        feedbackDisplay.textContent = "✅ 音频已激活！现在可以播放声音";
+                        feedbackDisplay.textContent = "✅ Audio Activated! You can now play sounds";
                     }
                 }
             }, { passive: true });
 
-            // 点击激活（备用）
+            // Click activation (fallback)
             document.addEventListener('click', function activateIPhoneClick() {
                 console.log("iPhone: Click detected");
                 if (!audioActivated && audioContext && audioContext.state === 'suspended') {
                     audioContext.resume().then(() => {
                         audioActivated = true;
-                        feedbackDisplay.textContent = "✅ 音频已激活！";
+                        feedbackDisplay.textContent = "✅ Audio Activated!";
                     });
                 }
             });
         }
 
-        // iPhone 专用单次心跳
+        // iPhone specific single heartbeat
         function playIPhoneSingleBeat(frequency = 120, volume = 0.3) {
             if (!audioContext || audioContext.state === 'suspended') {
                 console.log("iPhone: AudioContext not ready for playback");
@@ -630,7 +630,7 @@
                 oscillator.connect(gainNode);
                 gainNode.connect(audioContext.destination);
                 
-                // iPhone 优化参数
+                // iPhone optimized parameters
                 oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
                 gainNode.gain.setValueAtTime(volume, audioContext.currentTime);
                 gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.15);
@@ -646,17 +646,17 @@
             }
         }
 
-        // iPhone 专用播放函数
+        // iPhone specific playback function
         function playIPhoneHeartbeat() {
             console.log("iPhone: Starting heartbeat playback");
             
             if (!audioActivated) {
-                feedbackDisplay.textContent = "❌ 请先点击屏幕激活音频";
+                feedbackDisplay.textContent = "❌ Please tap screen to activate audio first";
                 return;
             }
             
             if (!audioContext) {
-                feedbackDisplay.textContent = "❌ 音频系统未就绪";
+                feedbackDisplay.textContent = "❌ Audio system not ready";
                 return;
             }
             
@@ -664,7 +664,7 @@
                 audioContext.resume().then(() => {
                     startIPhoneHeartbeatPattern();
                 }).catch(err => {
-                    feedbackDisplay.textContent = "❌ 音频启动失败，请重试";
+                    feedbackDisplay.textContent = "❌ Audio startup failed, please try again";
                 });
                 return;
             }
@@ -674,25 +674,25 @@
 
         function startIPhoneHeartbeatPattern() {
             stopAllHeartbeats();
-            feedbackDisplay.textContent = "🎵 播放心跳声中...";
+            feedbackDisplay.textContent = "🎵 Playing heartbeat sound...";
             
             if (currentMode === 'normal') {
-                // 播放第一声
+                // Play first beat
                 playIPhoneSingleBeat();
                 
-                // 设置循环
+                // Set up loop
                 const interval = (60 / targetFrequency) * 1000;
                 heartbeatInterval = setInterval(() => {
                     playIPhoneSingleBeat();
                 }, interval);
                 
-                // 5秒后停止
+                // Stop after 5 seconds
                 setTimeout(() => {
                     stopAllHeartbeats();
-                    feedbackDisplay.textContent = "播放完成";
+                    feedbackDisplay.textContent = "Playback completed";
                 }, 5000);
             } else {
-                // 不规则模式
+                // Irregular mode
                 startIPhoneIrregularHeartbeat();
             }
         }
@@ -730,11 +730,11 @@
             
             setTimeout(() => {
                 stopAllHeartbeats();
-                feedbackDisplay.textContent = `播放完成 (${beatCount} 次心跳)`;
+                feedbackDisplay.textContent = `Playback completed (${beatCount} beats)`;
             }, 5000);
         }
 
-        // iPhone 调试信息更新
+        // iPhone debug info update
         function updateIPhoneDebug() {
             if (iphoneDebug) {
                 const audioState = audioContext ? audioContext.state : 'no context';
@@ -742,9 +742,9 @@
             }
         }
 
-        // ==================== 通用函数 ====================
+        // ==================== General Functions ====================
 
-        // 新的音频激活和播放函数
+        // Audio activation and playback function
         function activateAudioAndPlay() {
             console.log("activateAudioAndPlay called");
             
@@ -773,7 +773,7 @@
         function activateAudioAndPlayExample(rate) {
             if (isIPhone) {
                 if (!audioActivated) {
-                    feedbackDisplay.textContent = "请先激活音频";
+                    feedbackDisplay.textContent = "Please activate audio first";
                     return;
                 }
                 playIPhoneSingleBeat(150, 0.3);
@@ -801,14 +801,14 @@
         function initGame() {
             console.log("initGame started");
             
-            // 设备检测
+            // Device detection
             const isIOS = detectIPhone();
             
             if (isIOS) {
-                // iPhone 专用设置
+                // iPhone specific setup
                 fixIPhoneAudio();
             } else {
-                // 其他移动设备
+                // Other mobile devices
                 const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
                 if (isMobile) {
                     mobileHelp.style.display = 'block';
@@ -819,22 +819,22 @@
             generateTargetFrequency();
             updateDisplays();
             
-            // 事件监听器
+            // Event listeners
             playTargetButton.addEventListener('click', activateAudioAndPlay);
             playTargetButton.addEventListener('touchstart', function(e) {
                 e.preventDefault();
                 activateAudioAndPlay();
             });
 
-            // 测试声音按钮
+            // Test sound button
             testSoundButton.addEventListener('click', function() {
                 if (isIPhone) {
                     if (!audioActivated) {
-                        feedbackDisplay.textContent = "请先点击屏幕激活音频";
+                        feedbackDisplay.textContent = "Please tap screen to activate audio first";
                         return;
                     }
                     const success = playIPhoneSingleBeat(330, 0.2);
-                    feedbackDisplay.textContent = success ? "✅ 测试声音播放成功" : "❌ 测试声音播放失败";
+                    feedbackDisplay.textContent = success ? "✅ Test sound played successfully" : "❌ Test sound failed";
                 } else {
                     playTestSound();
                 }
@@ -872,7 +872,7 @@
                 }
             });
             
-            // 音频上下文初始化
+            // Audio context initialization
             try {
                 if (!audioContext) {
                     audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -893,13 +893,13 @@
                 feedbackDisplay.textContent = "Audio is not supported in your browser. Visual matching only.";
             }
 
-            // 启动调试信息更新
+            // Start debug info updates
             setInterval(updateIPhoneDebug, 1000);
             
             console.log("initGame completed");
         }
 
-        // 测试声音（非iPhone设备）
+        // Test sound (non-iPhone devices)
         function playTestSound() {
             if (!audioContext) return;
             
@@ -917,7 +917,1242 @@
             oscillator.stop(audioContext.currentTime + 0.3);
         }
         
-        // 原有的通用函数保持不变
+        // Rest of the general functions remain the same...
+        function switchMode(mode) {
+            currentMode = mode;
+            stopAllHeartbeats();
+            
+            normalModeButton.classList.toggle('active', mode === 'normal');
+            irregularModeButton.classList.toggle('active', mode === 'irregular');
+            
+            if (mode === 'normal') {
+                modeDescription.textContent = "Match the target heart rhythm by tapping or using your voice. In this mode, you'll match a regular, healthy heartbeat pattern typical of someone in love.";
+            } else {
+                modeDescription.textContent = "Match the target heart rhythm by tapping or using your voice. In this mode, you'll match an irregular, faster heartbeat pattern typical of someone experiencing heartbreak.";
+            }
+            
+            generateTargetFrequency();
+            updateDisplays();
+        }
+        
+        function generateTargetFrequency() {
+            if (currentMode === 'normal') {
+                targetFrequency = Math.floor(Math.random() * 20) + 60;
+                targetFrequencyDisplay.textContent = targetFrequency + " BPM";
+            } else {
+                targetFrequency = Math.floor(Math.random() * 20) + 90;
+                targetFrequencyDisplay.textContent = "Irregular (" + targetFrequency + " BPM avg)";
+            }
+        }
+        
+        function stopAllHeartbeats() {
+            if (heartbeatInterval) {
+                clearInterval(heartbeatInterval);
+                heartbeatInterval = null;
+            }
+            if (irregularHeartbeatInterval) {
+                clearInterval(irregularHeartbeatInterval);
+                irregularHeartbeatInterval = null;
+            }
+            currentBpmDisplay.textContent = "";
+        }
+        
+        function actuallyPlaySound(rate, mode) {
+            stopAllHeartbeats();
+            
+            if (mode === 'normal') {
+                playSingleBeat();
+                const interval = (60 / rate) * 1000;
+                heartbeatInterval = setInterval(playSingleBeat, interval);
+                
+                setTimeout(() => {
+                    stopAllHeartbeats();
+                }, 5000);
+            } else {
+                startIrregularHeartbeat();
+                setTimeout(() => {
+                    stopAllHeartbeats();
+                }, 5000);
+            }
+        }
+        
+        function playSingleBeat() {
+            if (!audioContext) return;
+            
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.frequency.setValueAtTime(150, audioContext.currentTime);
+            gainNode.gain.setValueAtTime(0.5, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.15);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.15);
+        }
+        
+        function startIrregularHeartbeat() {
+            if (irregularHeartbeatInterval) {
+                clearInterval(irregularHeartbeatInterval);
+            }
+            
+            let lastBeatTime = Date.now();
+            
+            function playIrregularBeat() {
+                const now = Date.now();
+                const baseInterval = (60 / targetFrequency) * 1000;
+                const randomFactor = 0.5 + Math.random();
+                const interval = baseInterval * randomFactor;
+                
+                if (now - lastBeatTime >= interval) {
+                    currentIrregularBPM = Math.round(60000 / interval);
+                    currentBpmDisplay.textContent = "Current: " + currentIrregularBPM + " BPM";
+                    playSingleBeat();
+                    lastBeatTime = now;
+                }
+                
+                irregularHeartbeatInterval = setTimeout(playIrregularBeat, 50);
+            }
+            
+            playIrregularBeat();
+        }
+        
+        function startRoundTimer() {
+            if (roundTimer) {
+                clearInterval(roundTimer);
+            }
+            
+            roundTimeLeft = 5;
+            timerDisplay.textContent = "Time left: " + roundTimeLeft + "s";
+            
+            roundTimer = setInterval(() => {
+                roundTimeLeft--;
+                timerDisplay.textContent = "Time left: " + roundTimeLeft + "s";
+                
+                if (roundTimeLeft <= 0) {
+                    clearInterval(roundTimer);
+                    if (startTapButton.disabled) stopTapping();
+                    if (isRecording) stopVoiceRecording();
+                    stopAllHeartbeats();
+                }
+            }, 1000);
+        }
+        
+        function handleTap() {
+            if (startTapButton.disabled && !stopTapButton.disabled) {
+                tapCount++;
+                tapArea.textContent = `Taps: ${tapCount}`;
+            }
+        }
+        
+        function startTapping() {
+            tapStartTime = Date.now();
+            tapCount = 0;
+            tapArea.classList.add('active');
+            startTapButton.disabled = true;
+            stopTapButton.disabled = false;
+            tapArea.textContent = "Tap!";
+            
+            startRoundTimer();
+            
+            if (currentMode === 'irregular') {
+                startIrregularTapEvaluation();
+            }
+            
+            setTimeout(() => {
+                if (!stopTapButton.disabled) {
+                    stopTapping();
+                }
+            }, 5000);
+        }
+        
+        function startIrregularTapEvaluation() {
+            if (tapInterval) {
+                clearInterval(tapInterval);
+            }
+            
+            tapInterval = setInterval(() => {
+                if (tapStartTime) {
+                    const elapsedTime = (Date.now() - tapStartTime) / 1000;
+                    if (elapsedTime > 0.5) {
+                        const currentBPM = (tapCount / elapsedTime) * 60;
+                        const similarity = calculateSimilarity(currentBPM);
+                        scoreDisplay.textContent = similarity + "%";
+                    }
+                }
+            }, 500);
+        }
+        
+        function stopTapping() {
+            tapArea.classList.remove('active');
+            startTapButton.disabled = false;
+            stopTapButton.disabled = true;
+            
+            if (tapInterval) {
+                clearInterval(tapInterval);
+                tapInterval = null;
+            }
+            
+            const elapsedTime = (Date.now() - tapStartTime) / 1000;
+            const averageBPM = (tapCount / elapsedTime) * 60;
+            
+            const similarity = calculateSimilarity(averageBPM);
+            updateScore(similarity);
+        }
+        
+        function calculateSimilarity(userBPM) {
+            let targetBPM = currentMode === 'normal' ? targetFrequency : currentIrregularBPM;
+            
+            const difference = Math.abs(targetBPM - userBPM);
+            const maxDifference = Math.max(targetBPM, 120 - targetBPM);
+            const similarity = Math.max(0, 100 - (difference / maxDifference) * 100);
+            
+            return Math.round(similarity);
+        }
+        
+        function startVoiceRecording() {
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                feedbackDisplay.textContent = "Your browser doesn't support voice recording. Please use tap matching.";
+                return;
+            }
+            
+            startRoundTimer();
+            
+            navigator.mediaDevices.getUserMedia({ audio: true })
+                .then(stream => {
+                    mediaRecorder = new MediaRecorder(stream);
+                    audioChunks = [];
+                    
+                    const source = audioContext.createMediaStreamSource(stream);
+                    source.connect(analyser);
+                    
+                    mediaRecorder.ondataavailable = event => {
+                        audioChunks.push(event.data);
+                    };
+                    
+                    mediaRecorder.onstop = analyzeVoiceRecording;
+                    
+                    mediaRecorder.start();
+                    isRecording = true;
+                    startVoiceButton.disabled = true;
+                    stopVoiceButton.disabled = false;
+                    
+                    drawVoiceWaveform();
+                    
+                    setTimeout(() => {
+                        if (isRecording) {
+                            stopVoiceRecording();
+                        }
+                    }, 5000);
+                })
+                .catch(err => {
+                    console.error('Error accessing microphone:', err);
+                    feedbackDisplay.textContent = "Cannot access microphone. Please check permissions.";
+                });
+        }
+        
+        function stopVoiceRecording() {
+            if (mediaRecorder && isRecording) {
+                mediaRecorder.stop();
+                isRecording = false;
+                startVoiceButton.disabled = false;
+                stopVoiceButton.disabled = true;
+                mediaRecorder.stream.getTracks().forEach(track => track.stop());
+            }
+        }
+        
+        function drawVoiceWaveform() {
+            if (!isRecording) return;
+            
+            requestAnimationFrame(drawVoiceWaveform);
+            
+            analyser.getByteTimeDomainData(dataArray);
+            
+            canvasCtx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+            canvasCtx.fillRect(0, 0, voiceWaveCanvas.width, voiceWaveCanvas.height);
+            
+            canvasCtx.lineWidth = 2;
+            canvasCtx.strokeStyle = 'rgb(0, 255, 0)';
+            canvasCtx.beginPath();
+            
+            const sliceWidth = voiceWaveCanvas.width / bufferLength;
+            let x = 0;
+            
+            for (let i = 0; i < bufferLength; i++) {
+                const v = dataArray[i] / 128.0;
+                const y = v * voiceWaveCanvas.height / 2;
+                
+                if (i === 0) {
+                    canvasCtx.moveTo(x, y);
+                } else {
+                    canvasCtx.lineTo(x, y);
+                }
+                
+                x += sliceWidth;
+            }
+            
+            canvasCtx.lineTo(voiceWaveCanvas.width, voiceWaveCanvas.height / 2);
+            canvasCtx.stroke();
+        }
+        
+        function analyzeVoiceRecording() {
+            const recordingDuration = 5;
+            const estimatedBeats = Math.floor(Math.random() * 10) + 5;
+            const estimatedBPM = (estimatedBeats / recordingDuration) * 60;
+            
+            const similarity = calculateSimilarity(estimatedBPM);
+            updateScore(similarity);
+        }
+        
+        function updateScore(similarity) {
+            scoreDisplay.textContent = similarity + "%";
+            totalScore += similarity;
+            
+            if (similarity > highScore) {
+                highScore = similarity;
+            }
+            
+            if (similarity >= 90) {
+                feedbackDisplay.textContent = "Perfect match! Excellent!";
+                feedbackDisplay.style.color = "#4CAF50";
+            } else if (similarity >= 70) {
+                feedbackDisplay.textContent = "Great! Close to the target heart rate.";
+                feedbackDisplay.style.color = "#8BC34A";
+            } else if (similarity >= 50) {
+                feedbackDisplay.textContent = "Good, but there's room for improvement.";
+                feedbackDisplay.style.color = "#FFC107";
+            } else {
+                feedbackDisplay.textContent = "Need more practice. Try again!";
+                feedbackDisplay.style.color = "#F44336";
+            }
+            
+            nextButton.disabled = false;
+            updateDisplays();
+        }
+        
+        function nextRound() {
+     <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Heart Rhythm Matching Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, rgba(26, 42, 108, 0.8), rgba(178, 31, 31, 0.8), rgba(253, 187, 45, 0.8)), 
+                        url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200"><path d="M100,40 C80,20 40,30 40,70 C40,110 100,150 100,150 C100,150 160,110 160,70 C160,30 120,20 100,40 Z" fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.1)" stroke-width="2"/></svg>');
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 900px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            margin-top: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 2.5rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .mode-selector {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .mode-button {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 2px solid white;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .mode-button.active {
+            background: rgba(255, 255, 255, 0.4);
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .game-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .info-box {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 5px;
+            flex: 1;
+            min-width: 150px;
+            text-align: center;
+        }
+        
+        .info-box h3 {
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+        
+        .info-box p {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        
+        .game-area {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .target-frequency {
+            text-align: center;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+        }
+        
+        .frequency-display {
+            font-size: 3rem;
+            font-weight: bold;
+            margin: 10px 0;
+            color: #ffeb3b;
+        }
+        
+        .play-button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        .play-button:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+        }
+        
+        .match-methods {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .method {
+            flex: 1;
+            min-width: 300px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .method h3 {
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        .visualizer {
+            width: 100%;
+            height: 150px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            margin: 15px 0;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .ecg-line {
+            position: absolute;
+            top: 50%;
+            width: 100%;
+            height: 2px;
+            background-color: #4CAF50;
+        }
+        
+        .ecg-complex {
+            position: absolute;
+            width: 20px;
+            height: 60px;
+            background: linear-gradient(to bottom, #ff5252, #ff9800);
+            border-radius: 10px;
+            top: 20%;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .control-button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+        
+        .record-button {
+            background: #f44336;
+            color: white;
+        }
+        
+        .record-button:hover {
+            background: #d32f2f;
+        }
+        
+        .stop-button {
+            background: #607d8b;
+            color: white;
+        }
+        
+        .stop-button:hover {
+            background: #455a64;
+        }
+        
+        .tap-area {
+            width: 100%;
+            height: 150px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin: 15px 0;
+            user-select: none;
+        }
+        
+        .tap-area:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .tap-area.active {
+            background: rgba(76, 175, 80, 0.3);
+        }
+        
+        .results {
+            text-align: center;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            margin-top: 20px;
+        }
+        
+        .score {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin: 10px 0;
+            color: #4CAF50;
+        }
+        
+        .feedback {
+            font-size: 1.2rem;
+            margin: 10px 0;
+        }
+        
+        .next-button {
+            background: #2196F3;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 15px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        .next-button:hover {
+            background: #0b7dda;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+        }
+        
+        .example-section {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+        
+        .example-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+        
+        .example-button {
+            background: #9C27B0;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .example-button:hover {
+            background: #7B1FA2;
+        }
+        
+        .mode-description {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+            line-height: 1.5;
+        }
+        
+        .current-bpm {
+            font-size: 1.2rem;
+            margin-top: 10px;
+            color: #ffeb3b;
+        }
+        
+        .timer {
+            font-size: 1.2rem;
+            margin-top: 10px;
+            color: #ff9800;
+        }
+
+        .mobile-help {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+            display: none;
+        }
+
+        .iphone-help {
+            text-align: center;
+            background: rgba(255, 0, 0, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+            display: none;
+            border: 2px solid #ff4444;
+        }
+        
+        @media (max-width: 600px) {
+            .container {
+                padding: 15px;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .frequency-display {
+                font-size: 2.5rem;
+            }
+            
+            .match-methods {
+                flex-direction: column;
+            }
+            
+            .mode-selector {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- iPhone Debug Info -->
+    <div id="iphone-debug" style="position: fixed; top: 10px; right: 10px; background: blue; color: white; padding: 8px; z-index: 1000; font-size: 12px; border-radius: 5px; display: none;">
+        iPhone Debug
+    </div>
+
+    <h1>Heart Rhythm Matching Game</h1>
+    
+    <div class="container">
+        <div class="mode-selector">
+            <button class="mode-button active" id="normal-mode">Love Heartbeat</button>
+            <button class="mode-button" id="irregular-mode">Heartbreak Heartbeat</button>
+        </div>
+        
+        <div class="mode-description" id="mode-description">
+            Match the target heart rhythm by tapping or using your voice. In this mode, you'll match a regular, healthy heartbeat pattern typical of someone in love.
+        </div>
+
+        <!-- iPhone Specific Instructions -->
+        <div class="iphone-help" id="iphone-help">
+            <h4>📱 iPhone Specific Instructions</h4>
+            <p>1. <strong>FIRST tap anywhere on screen firmly</strong></p>
+            <p>2. Wait for "Audio Activated" confirmation</p>
+            <p>3. Then tap "Play Heartbeat Sound" button</p>
+            <p>4. If no sound, repeat step 1</p>
+        </div>
+
+        <!-- General Mobile Instructions -->
+        <div class="mobile-help" id="mobile-help">
+            <h4>📱 Mobile Instructions</h4>
+            <p>1. Tap anywhere on screen first</p>
+            <p>2. Then tap "Play Heartbeat Sound"</p>
+            <p>3. Allow audio if prompted</p>
+        </div>
+        
+        <div class="game-info">
+            <div class="info-box">
+                <h3>Current Round</h3>
+                <p id="round">1</p>
+            </div>
+            <div class="info-box">
+                <h3>High Score</h3>
+                <p id="high-score">0</p>
+            </div>
+            <div class="info-box">
+                <h3>Total Score</h3>
+                <p id="total-score">0</p>
+            </div>
+        </div>
+        
+        <div class="game-area">
+            <div class="target-frequency">
+                <h2>Target Heart Rhythm</h2>
+                <div class="frequency-display" id="target-frequency">72 BPM</div>
+                <div class="current-bpm" id="current-bpm-display"></div>
+                <div class="timer" id="timer-display"></div>
+                <button class="play-button" id="play-target">Play Heartbeat Sound</button>
+                <button class="play-button" id="test-sound" style="background: #FF9800;">Test Sound</button>
+            </div>
+            
+            <div class="example-section">
+                <h3>Heart Rate Examples</h3>
+                <p>Listen to these examples to understand different heart rates:</p>
+                <div class="example-buttons">
+                    <button class="example-button" data-rate="60">Slow (60 BPM)</button>
+                    <button class="example-button" data-rate="72">Normal (72 BPM)</button>
+                    <button class="example-button" data-rate="90">Fast (90 BPM)</button>
+                    <button class="example-button" data-rate="110">Very Fast (110 BPM)</button>
+                </div>
+            </div>
+            
+            <div class="match-methods">
+                <div class="method">
+                    <h3>Tap Matching</h3>
+                    <p>Tap at the same rate as the target heart rhythm</p>
+                    <div class="tap-area" id="tap-area">
+                        Tap here to match heart rate
+                    </div>
+                    <div class="controls">
+                        <button class="control-button record-button" id="start-tap">Start Tapping</button>
+                        <button class="control-button stop-button" id="stop-tap" disabled>Stop</button>
+                    </div>
+                </div>
+                
+                <div class="method">
+                    <h3>Voice Matching</h3>
+                    <p>Use your voice to match the target heart rhythm</p>
+                    <div class="visualizer" id="voice-visualizer">
+                        <canvas id="voice-wave"></canvas>
+                    </div>
+                    <div class="controls">
+                        <button class="control-button record-button" id="start-voice">Start Recording</button>
+                        <button class="control-button stop-button" id="stop-voice" disabled>Stop</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="results">
+                <h2>Matching Result</h2>
+                <div class="score" id="score">0%</div>
+                <div class="feedback" id="feedback">Waiting for your match...</div>
+                <button class="next-button" id="next-button" disabled>Next Round</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Game state variables
+        let currentMode = 'normal';
+        let targetFrequency = 72;
+        let round = 1;
+        let totalScore = 0;
+        let highScore = 0;
+        
+        // Audio and timing variables
+        let audioContext;
+        let heartbeatInterval;
+        let irregularHeartbeatInterval;
+        let roundTimer;
+        let roundTimeLeft = 0;
+        
+        // Tap matching variables
+        let tapStartTime;
+        let tapCount = 0;
+        let tapInterval;
+        let currentIrregularBPM = 72;
+        
+        // Voice recording variables
+        let mediaRecorder;
+        let audioChunks = [];
+        let isRecording = false;
+        let analyser;
+        let dataArray;
+        let bufferLength;
+        let canvasCtx;
+
+        // iPhone specific variables
+        let audioActivated = false;
+        let isIPhone = false;
+        
+        // DOM elements
+        const targetFrequencyDisplay = document.getElementById('target-frequency');
+        const currentBpmDisplay = document.getElementById('current-bpm-display');
+        const timerDisplay = document.getElementById('timer-display');
+        const playTargetButton = document.getElementById('play-target');
+        const testSoundButton = document.getElementById('test-sound');
+        const startTapButton = document.getElementById('start-tap');
+        const stopTapButton = document.getElementById('stop-tap');
+        const startVoiceButton = document.getElementById('start-voice');
+        const stopVoiceButton = document.getElementById('stop-voice');
+        const tapArea = document.getElementById('tap-area');
+        const scoreDisplay = document.getElementById('score');
+        const feedbackDisplay = document.getElementById('feedback');
+        const nextButton = document.getElementById('next-button');
+        const roundDisplay = document.getElementById('round');
+        const totalScoreDisplay = document.getElementById('total-score');
+        const highScoreDisplay = document.getElementById('high-score');
+        const normalModeButton = document.getElementById('normal-mode');
+        const irregularModeButton = document.getElementById('irregular-mode');
+        const modeDescription = document.getElementById('mode-description');
+        const exampleButtons = document.querySelectorAll('.example-button');
+        const voiceWaveCanvas = document.getElementById('voice-wave');
+        const mobileHelp = document.getElementById('mobile-help');
+        const iphoneHelp = document.getElementById('iphone-help');
+        const iphoneDebug = document.getElementById('iphone-debug');
+
+        // ==================== iPhone Specific Fix Functions ====================
+        
+        // Detect iPhone devices
+        function detectIPhone() {
+            const userAgent = navigator.userAgent;
+            isIPhone = /iPhone|iPad|iPod/.test(userAgent);
+            const isSafari = /Safari/.test(userAgent) && !/Chrome/.test(userAgent);
+            const isIOS = isIPhone || isSafari;
+            
+            console.log("Device Detection:", {
+                userAgent: userAgent,
+                isIPhone: isIPhone,
+                isSafari: isSafari,
+                isIOS: isIOS
+            });
+            
+            return isIOS;
+        }
+
+        // iPhone audio fixes
+        function fixIPhoneAudio() {
+            console.log("Applying iPhone audio fixes");
+            
+            // Show iPhone specific instructions
+            iphoneHelp.style.display = 'block';
+            iphoneDebug.style.display = 'block';
+            feedbackDisplay.textContent = "iPhone: Please tap screen firmly to activate audio";
+            
+            // Pre-load audio context
+            setTimeout(() => {
+                if (!audioContext) {
+                    try {
+                        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                        console.log("iPhone: AudioContext pre-loaded");
+                    } catch (e) {
+                        console.error("iPhone: AudioContext creation failed:", e);
+                    }
+                }
+            }, 500);
+
+            // Global touch activation
+            document.addEventListener('touchstart', function activateIPhoneAudio(e) {
+                console.log("iPhone: Touch detected", e.touches.length);
+                
+                if (!audioActivated) {
+                    if (!audioContext) {
+                        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    }
+                    
+                    if (audioContext.state === 'suspended') {
+                        audioContext.resume().then(() => {
+                            console.log("iPhone: AudioContext resumed successfully");
+                            audioActivated = true;
+                            feedbackDisplay.textContent = "✅ Audio Activated! You can now play sounds";
+                            iphoneHelp.innerHTML = '<h4>✅ Audio Activated</h4><p>You can now tap "Play Heartbeat Sound"</p>';
+                            
+                            // Play confirmation sound
+                            playIPhoneSingleBeat(440, 0.1);
+                        }).catch(err => {
+                            console.error("iPhone: AudioContext resume failed:", err);
+                            feedbackDisplay.textContent = "❌ Audio activation failed, please tap screen again";
+                        });
+                    } else {
+                        audioActivated = true;
+                        feedbackDisplay.textContent = "✅ Audio Activated! You can now play sounds";
+                    }
+                }
+            }, { passive: true });
+
+            // Click activation (fallback)
+            document.addEventListener('click', function activateIPhoneClick() {
+                console.log("iPhone: Click detected");
+                if (!audioActivated && audioContext && audioContext.state === 'suspended') {
+                    audioContext.resume().then(() => {
+                        audioActivated = true;
+                        feedbackDisplay.textContent = "✅ Audio Activated!";
+                    });
+                }
+            });
+        }
+
+        // iPhone specific single heartbeat
+        function playIPhoneSingleBeat(frequency = 120, volume = 0.3) {
+            if (!audioContext || audioContext.state === 'suspended') {
+                console.log("iPhone: AudioContext not ready for playback");
+                return false;
+            }
+            
+            try {
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                // iPhone optimized parameters
+                oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
+                gainNode.gain.setValueAtTime(volume, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.15);
+                
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.15);
+                
+                console.log("iPhone: Single beat played successfully");
+                return true;
+            } catch (e) {
+                console.error("iPhone: Playback failed:", e);
+                return false;
+            }
+        }
+
+        // iPhone specific playback function
+        function playIPhoneHeartbeat() {
+            console.log("iPhone: Starting heartbeat playback");
+            
+            if (!audioActivated) {
+                feedbackDisplay.textContent = "❌ Please tap screen to activate audio first";
+                return;
+            }
+            
+            if (!audioContext) {
+                feedbackDisplay.textContent = "❌ Audio system not ready";
+                return;
+            }
+            
+            if (audioContext.state === 'suspended') {
+                audioContext.resume().then(() => {
+                    startIPhoneHeartbeatPattern();
+                }).catch(err => {
+                    feedbackDisplay.textContent = "❌ Audio startup failed, please try again";
+                });
+                return;
+            }
+            
+            startIPhoneHeartbeatPattern();
+        }
+
+        function startIPhoneHeartbeatPattern() {
+            stopAllHeartbeats();
+            feedbackDisplay.textContent = "🎵 Playing heartbeat sound...";
+            
+            if (currentMode === 'normal') {
+                // Play first beat
+                playIPhoneSingleBeat();
+                
+                // Set up loop
+                const interval = (60 / targetFrequency) * 1000;
+                heartbeatInterval = setInterval(() => {
+                    playIPhoneSingleBeat();
+                }, interval);
+                
+                // Stop after 5 seconds
+                setTimeout(() => {
+                    stopAllHeartbeats();
+                    feedbackDisplay.textContent = "Playback completed";
+                }, 5000);
+            } else {
+                // Irregular mode
+                startIPhoneIrregularHeartbeat();
+            }
+        }
+
+        function startIPhoneIrregularHeartbeat() {
+            if (irregularHeartbeatInterval) {
+                clearInterval(irregularHeartbeatInterval);
+            }
+            
+            let lastBeatTime = Date.now();
+            let beatCount = 0;
+            
+            function playNextIPhoneBeat() {
+                const now = Date.now();
+                const baseInterval = (60 / targetFrequency) * 1000;
+                const randomFactor = 0.6 + Math.random() * 0.8;
+                const interval = baseInterval * randomFactor;
+                
+                if (now - lastBeatTime >= interval) {
+                    currentIrregularBPM = Math.round(60000 / interval);
+                    currentBpmDisplay.textContent = "Current: " + currentIrregularBPM + " BPM";
+                    
+                    const success = playIPhoneSingleBeat();
+                    if (success) {
+                        beatCount++;
+                    }
+                    
+                    lastBeatTime = now;
+                }
+                
+                irregularHeartbeatInterval = setTimeout(playNextIPhoneBeat, 30);
+            }
+            
+            playNextIPhoneBeat();
+            
+            setTimeout(() => {
+                stopAllHeartbeats();
+                feedbackDisplay.textContent = `Playback completed (${beatCount} beats)`;
+            }, 5000);
+        }
+
+        // iPhone debug info update
+        function updateIPhoneDebug() {
+            if (iphoneDebug) {
+                const audioState = audioContext ? audioContext.state : 'no context';
+                iphoneDebug.innerHTML = `iPhone: ${isIPhone}<br>Audio: ${audioState}<br>Activated: ${audioActivated}`;
+            }
+        }
+
+        // ==================== General Functions ====================
+
+        // Audio activation and playback function
+        function activateAudioAndPlay() {
+            console.log("activateAudioAndPlay called");
+            
+            if (isIPhone) {
+                playIPhoneHeartbeat();
+            } else {
+                if (!audioContext) {
+                    try {
+                        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    } catch (e) {
+                        feedbackDisplay.textContent = "Cannot create audio: " + e.message;
+                        return;
+                    }
+                }
+                
+                if (audioContext.state === 'suspended') {
+                    audioContext.resume().then(() => {
+                        actuallyPlaySound(targetFrequency, currentMode);
+                    });
+                } else {
+                    actuallyPlaySound(targetFrequency, currentMode);
+                }
+            }
+        }
+
+        function activateAudioAndPlayExample(rate) {
+            if (isIPhone) {
+                if (!audioActivated) {
+                    feedbackDisplay.textContent = "Please activate audio first";
+                    return;
+                }
+                playIPhoneSingleBeat(150, 0.3);
+            } else {
+                if (!audioContext) {
+                    try {
+                        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    } catch (e) {
+                        feedbackDisplay.textContent = "Cannot create audio context: " + e.message;
+                        return;
+                    }
+                }
+                
+                if (audioContext.state === 'suspended') {
+                    audioContext.resume().then(() => {
+                        setTimeout(() => actuallyPlaySound(rate, 'normal'), 100);
+                    });
+                } else {
+                    actuallyPlaySound(rate, 'normal');
+                }
+            }
+        }
+        
+        // Initialize game
+        function initGame() {
+            console.log("initGame started");
+            
+            // Device detection
+            const isIOS = detectIPhone();
+            
+            if (isIOS) {
+                // iPhone specific setup
+                fixIPhoneAudio();
+            } else {
+                // Other mobile devices
+                const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+                if (isMobile) {
+                    mobileHelp.style.display = 'block';
+                    feedbackDisplay.textContent = "Tap screen first, then play sound";
+                }
+            }
+            
+            generateTargetFrequency();
+            updateDisplays();
+            
+            // Event listeners
+            playTargetButton.addEventListener('click', activateAudioAndPlay);
+            playTargetButton.addEventListener('touchstart', function(e) {
+                e.preventDefault();
+                activateAudioAndPlay();
+            });
+
+            // Test sound button
+            testSoundButton.addEventListener('click', function() {
+                if (isIPhone) {
+                    if (!audioActivated) {
+                        feedbackDisplay.textContent = "Please tap screen to activate audio first";
+                        return;
+                    }
+                    const success = playIPhoneSingleBeat(330, 0.2);
+                    feedbackDisplay.textContent = success ? "✅ Test sound played successfully" : "❌ Test sound failed";
+                } else {
+                    playTestSound();
+                }
+            });
+            
+            startTapButton.addEventListener('click', startTapping);
+            stopTapButton.addEventListener('click', stopTapping);
+            startVoiceButton.addEventListener('click', startVoiceRecording);
+            stopVoiceButton.addEventListener('click', stopVoiceRecording);
+            nextButton.addEventListener('click', nextRound);
+            
+            // Mode buttons
+            normalModeButton.addEventListener('click', () => switchMode('normal'));
+            irregularModeButton.addEventListener('click', () => switchMode('irregular'));
+            
+            // Example buttons
+            exampleButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const rate = parseInt(this.getAttribute('data-rate'));
+                    activateAudioAndPlayExample(rate);
+                });
+                button.addEventListener('touchstart', function(e) {
+                    e.preventDefault();
+                    const rate = parseInt(this.getAttribute('data-rate'));
+                    activateAudioAndPlayExample(rate);
+                });
+            });
+            
+            // Tap area
+            tapArea.addEventListener('click', handleTap);
+            tapArea.addEventListener('touchstart', function(e) {
+                e.preventDefault();
+                if (startTapButton.disabled && !stopTapButton.disabled) {
+                    handleTap();
+                }
+            });
+            
+            // Audio context initialization
+            try {
+                if (!audioContext) {
+                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                
+                // Voice analyzer
+                analyser = audioContext.createAnalyser();
+                analyser.fftSize = 2048;
+                bufferLength = analyser.frequencyBinCount;
+                dataArray = new Uint8Array(bufferLength);
+                
+                // Canvas
+                canvasCtx = voiceWaveCanvas.getContext('2d');
+                voiceWaveCanvas.width = voiceWaveCanvas.offsetWidth;
+                voiceWaveCanvas.height = voiceWaveCanvas.offsetHeight;
+            } catch (e) {
+                console.error('Web Audio API is not supported:', e);
+                feedbackDisplay.textContent = "Audio is not supported in your browser. Visual matching only.";
+            }
+
+            // Start debug info updates
+            setInterval(updateIPhoneDebug, 1000);
+            
+            console.log("initGame completed");
+        }
+
+        // Test sound (non-iPhone devices)
+        function playTestSound() {
+            if (!audioContext) return;
+            
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.frequency.setValueAtTime(440, audioContext.currentTime);
+            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.3);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.3);
+        }
+        
+        // Rest of the general functions remain the same...
         function switchMode(mode) {
             currentMode = mode;
             stopAllHeartbeats();
@@ -1234,6 +2469,36 @@
         
         function nextRound() {
             round++;
+            generateTargetFrequency();
+            nextButton.disabled = true;
+            scoreDisplay.textContent = "0%";
+            feedbackDisplay.textContent = "Waiting for your match...";
+            feedbackDisplay.style.color = "white";
+            
+            stopAllHeartbeats();
+            
+            if (canvasCtx) {
+                canvasCtx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+                canvasCtx.fillRect(0, 0, voiceWaveCanvas.width, voiceWaveCanvas.height);
+            }
+            
+            tapCount = 0;
+            tapStartTime = null;
+            
+            updateDisplays();
+        }
+        
+        function updateDisplays() {
+            roundDisplay.textContent = round;
+            totalScoreDisplay.textContent = totalScore;
+            highScoreDisplay.textContent = highScore;
+        }
+        
+        // Initialize game
+        window.addEventListener('load', initGame);
+    </script>
+</body>
+</html>       round++;
             generateTargetFrequency();
             nextButton.disabled = true;
             scoreDisplay.textContent = "0%";
