@@ -325,6 +325,15 @@
             margin-top: 10px;
             color: #ff9800;
         }
+
+        .mobile-help {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+            display: none;
+        }
         
         @media (max-width: 600px) {
             .container {
@@ -361,6 +370,14 @@
         
         <div class="mode-description" id="mode-description">
             Match the target heart rhythm by tapping or using your voice. In this mode, you'll match a regular, healthy heartbeat pattern typical of someone in love.
+        </div>
+
+        <!-- 移动端提示 -->
+        <div class="mobile-help" id="mobile-help">
+            <h4>📱 Mobile Instructions</h4>
+            <p>1. Tap anywhere on screen first</p>
+            <p>2. Then tap "Play Heartbeat Sound"</p>
+            <p>3. Allow audio if prompted</p>
         </div>
         
         <div class="game-info">
@@ -484,14 +501,82 @@
         const modeDescription = document.getElementById('mode-description');
         const exampleButtons = document.querySelectorAll('.example-button');
         const voiceWaveCanvas = document.getElementById('voice-wave');
+        const mobileHelp = document.getElementById('mobile-help');
+        
+        // 新的音频激活和播放函数
+        function activateAudioAndPlay() {
+            console.log("activateAudioAndPlay called");
+            
+            if (!audioContext) {
+                try {
+                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    console.log("AudioContext created");
+                } catch (e) {
+                    feedbackDisplay.textContent = "Cannot create audio context: " + e.message;
+                    return;
+                }
+            }
+            
+            if (audioContext.state === 'suspended') {
+                console.log("AudioContext suspended, resuming...");
+                audioContext.resume().then(() => {
+                    console.log("AudioContext resumed successfully");
+                    feedbackDisplay.textContent = "Audio activated! Playing heartbeat...";
+                    setTimeout(() => actuallyPlaySound(targetFrequency, currentMode), 100);
+                }).catch(err => {
+                    console.error("AudioContext resume failed:", err);
+                    feedbackDisplay.textContent = "Please tap the screen first, then try again";
+                });
+            } else {
+                console.log("AudioContext already active");
+                actuallyPlaySound(targetFrequency, currentMode);
+            }
+        }
+
+        function activateAudioAndPlayExample(rate) {
+            if (!audioContext) {
+                try {
+                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                } catch (e) {
+                    feedbackDisplay.textContent = "Cannot create audio context: " + e.message;
+                    return;
+                }
+            }
+            
+            if (audioContext.state === 'suspended') {
+                audioContext.resume().then(() => {
+                    setTimeout(() => actuallyPlaySound(rate, 'normal'), 100);
+                });
+            } else {
+                actuallyPlaySound(rate, 'normal');
+            }
+        }
         
         // Initialize game
         function initGame() {
+            console.log("initGame started");
+            
+            // 移动端检测
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            console.log("Is mobile device:", isMobile);
+            
+            if (isMobile) {
+                mobileHelp.style.display = 'block';
+                feedbackDisplay.textContent = "Tap screen first, then play sound";
+                console.log("Mobile help displayed");
+            }
+            
             generateTargetFrequency();
             updateDisplays();
             
             // Set up event listeners
-            playTargetButton.addEventListener('click', () => playHeartbeatSound(targetFrequency, currentMode));
+            playTargetButton.addEventListener('click', activateAudioAndPlay);
+            playTargetButton.addEventListener('touchstart', function(e) {
+                e.preventDefault();
+                console.log("Touch event on play button");
+                activateAudioAndPlay();
+            });
+            
             startTapButton.addEventListener('click', startTapping);
             stopTapButton.addEventListener('click', stopTapping);
             startVoiceButton.addEventListener('click', startVoiceRecording);
@@ -506,16 +591,48 @@
             exampleButtons.forEach(button => {
                 button.addEventListener('click', function() {
                     const rate = parseInt(this.getAttribute('data-rate'));
-                    playHeartbeatSound(rate, 'normal');
+                    activateAudioAndPlayExample(rate);
+                });
+                button.addEventListener('touchstart', function(e) {
+                    e.preventDefault();
+                    const rate = parseInt(this.getAttribute('data-rate'));
+                    activateAudioAndPlayExample(rate);
                 });
             });
             
             // Tap area click handler
             tapArea.addEventListener('click', handleTap);
+            tapArea.addEventListener('touchstart', function(e) {
+                e.preventDefault();
+                if (startTapButton.disabled && !stopTapButton.disabled) {
+                    handleTap();
+                }
+            });
+            
+            // 页面触摸激活音频
+            document.addEventListener('touchstart', function activateOnTouch() {
+                console.log("Screen touched - activating audio");
+                if (audioContext && audioContext.state === 'suspended') {
+                    audioContext.resume().then(() => {
+                        console.log("Audio activated by touch");
+                        feedbackDisplay.textContent = "Audio activated! Ready to play sound";
+                    });
+                }
+            }, { passive: true });
+            
+            // 页面点击激活音频（桌面端）
+            document.addEventListener('click', function activateOnClick() {
+                if (audioContext && audioContext.state === 'suspended') {
+                    audioContext.resume().then(() => {
+                        console.log("Audio activated by click");
+                    });
+                }
+            }, { once: true });
             
             // Initialize audio context
             try {
                 audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                console.log("AudioContext initialized:", audioContext.state);
                 
                 // Initialize voice analyzer
                 analyser = audioContext.createAnalyser();
@@ -531,6 +648,8 @@
                 console.error('Web Audio API is not supported:', e);
                 feedbackDisplay.textContent = "Audio is not supported in your browser. Visual matching only.";
             }
+
+            console.log("initGame completed");
         }
         
         // Switch between modes
@@ -595,17 +714,9 @@
             oscillator.stop(audioContext.currentTime + 0.15);
         }
         
-        // Play heartbeat sound
-        function playHeartbeatSound(rate, mode) {
-            if (!audioContext) {
-                try {
-                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                } catch (e) {
-                    feedbackDisplay.textContent = "Cannot play audio. Please use a browser that supports Web Audio API.";
-                    return;
-                }
-            }
-            
+        // 实际的播放逻辑
+        function actuallyPlaySound(rate, mode) {
+            console.log("actuallyPlaySound called with rate:", rate, "mode:", mode);
             stopAllHeartbeats();
             
             if (mode === 'normal') {
