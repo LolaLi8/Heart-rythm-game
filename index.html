@@ -334,6 +334,16 @@
             margin: 10px 0;
             display: none;
         }
+
+        .iphone-help {
+            text-align: center;
+            background: rgba(255, 0, 0, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+            display: none;
+            border: 2px solid #ff4444;
+        }
         
         @media (max-width: 600px) {
             .container {
@@ -360,6 +370,11 @@
     </style>
 </head>
 <body>
+    <!-- iPhone 调试信息 -->
+    <div id="iphone-debug" style="position: fixed; top: 10px; right: 10px; background: blue; color: white; padding: 8px; z-index: 1000; font-size: 12px; border-radius: 5px; display: none;">
+        iPhone Debug
+    </div>
+
     <h1>Heart Rhythm Matching Game</h1>
     
     <div class="container">
@@ -372,7 +387,16 @@
             Match the target heart rhythm by tapping or using your voice. In this mode, you'll match a regular, healthy heartbeat pattern typical of someone in love.
         </div>
 
-        <!-- 移动端提示 -->
+        <!-- iPhone 专用提示 -->
+        <div class="iphone-help" id="iphone-help">
+            <h4>📱 iPhone 专用说明</h4>
+            <p>1. <strong>先用力点击屏幕任意位置</strong></p>
+            <p>2. 等待"音频已激活"提示</p>
+            <p>3. 然后点击"播放声音"按钮</p>
+            <p>4. 如果没声音，重复步骤1</p>
+        </div>
+
+        <!-- 普通移动端提示 -->
         <div class="mobile-help" id="mobile-help">
             <h4>📱 Mobile Instructions</h4>
             <p>1. Tap anywhere on screen first</p>
@@ -402,6 +426,7 @@
                 <div class="current-bpm" id="current-bpm-display"></div>
                 <div class="timer" id="timer-display"></div>
                 <button class="play-button" id="play-target">Play Heartbeat Sound</button>
+                <button class="play-button" id="test-sound" style="background: #FF9800;">Test Sound</button>
             </div>
             
             <div class="example-section">
@@ -479,12 +504,17 @@
         let dataArray;
         let bufferLength;
         let canvasCtx;
+
+        // iPhone 专用变量
+        let audioActivated = false;
+        let isIPhone = false;
         
         // DOM elements
         const targetFrequencyDisplay = document.getElementById('target-frequency');
         const currentBpmDisplay = document.getElementById('current-bpm-display');
         const timerDisplay = document.getElementById('timer-display');
         const playTargetButton = document.getElementById('play-target');
+        const testSoundButton = document.getElementById('test-sound');
         const startTapButton = document.getElementById('start-tap');
         const stopTapButton = document.getElementById('stop-tap');
         const startVoiceButton = document.getElementById('start-voice');
@@ -502,53 +532,268 @@
         const exampleButtons = document.querySelectorAll('.example-button');
         const voiceWaveCanvas = document.getElementById('voice-wave');
         const mobileHelp = document.getElementById('mobile-help');
+        const iphoneHelp = document.getElementById('iphone-help');
+        const iphoneDebug = document.getElementById('iphone-debug');
+
+        // ==================== iPhone 专用修复函数 ====================
         
+        // 检测 iPhone 设备
+        function detectIPhone() {
+            const userAgent = navigator.userAgent;
+            isIPhone = /iPhone|iPad|iPod/.test(userAgent);
+            const isSafari = /Safari/.test(userAgent) && !/Chrome/.test(userAgent);
+            const isIOS = isIPhone || isSafari;
+            
+            console.log("Device Detection:", {
+                userAgent: userAgent,
+                isIPhone: isIPhone,
+                isSafari: isSafari,
+                isIOS: isIOS
+            });
+            
+            return isIOS;
+        }
+
+        // iPhone 音频修复
+        function fixIPhoneAudio() {
+            console.log("Applying iPhone audio fixes");
+            
+            // 显示 iPhone 专用提示
+            iphoneHelp.style.display = 'block';
+            iphoneDebug.style.display = 'block';
+            feedbackDisplay.textContent = "iPhone: 请先用力点击屏幕激活音频";
+            
+            // 预加载音频上下文
+            setTimeout(() => {
+                if (!audioContext) {
+                    try {
+                        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                        console.log("iPhone: AudioContext pre-loaded");
+                    } catch (e) {
+                        console.error("iPhone: AudioContext creation failed:", e);
+                    }
+                }
+            }, 500);
+
+            // 全局触摸激活
+            document.addEventListener('touchstart', function activateIPhoneAudio(e) {
+                console.log("iPhone: Touch detected", e.touches.length);
+                
+                if (!audioActivated) {
+                    if (!audioContext) {
+                        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    }
+                    
+                    if (audioContext.state === 'suspended') {
+                        audioContext.resume().then(() => {
+                            console.log("iPhone: AudioContext resumed successfully");
+                            audioActivated = true;
+                            feedbackDisplay.textContent = "✅ 音频已激活！现在可以播放声音";
+                            iphoneHelp.innerHTML = '<h4>✅ 音频已激活</h4><p>现在可以点击"播放声音"按钮</p>';
+                            
+                            // 播放确认声音
+                            playIPhoneSingleBeat(440, 0.1);
+                        }).catch(err => {
+                            console.error("iPhone: AudioContext resume failed:", err);
+                            feedbackDisplay.textContent = "❌ 音频激活失败，请再次点击屏幕";
+                        });
+                    } else {
+                        audioActivated = true;
+                        feedbackDisplay.textContent = "✅ 音频已激活！现在可以播放声音";
+                    }
+                }
+            }, { passive: true });
+
+            // 点击激活（备用）
+            document.addEventListener('click', function activateIPhoneClick() {
+                console.log("iPhone: Click detected");
+                if (!audioActivated && audioContext && audioContext.state === 'suspended') {
+                    audioContext.resume().then(() => {
+                        audioActivated = true;
+                        feedbackDisplay.textContent = "✅ 音频已激活！";
+                    });
+                }
+            });
+        }
+
+        // iPhone 专用单次心跳
+        function playIPhoneSingleBeat(frequency = 120, volume = 0.3) {
+            if (!audioContext || audioContext.state === 'suspended') {
+                console.log("iPhone: AudioContext not ready for playback");
+                return false;
+            }
+            
+            try {
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                // iPhone 优化参数
+                oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
+                gainNode.gain.setValueAtTime(volume, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.15);
+                
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.15);
+                
+                console.log("iPhone: Single beat played successfully");
+                return true;
+            } catch (e) {
+                console.error("iPhone: Playback failed:", e);
+                return false;
+            }
+        }
+
+        // iPhone 专用播放函数
+        function playIPhoneHeartbeat() {
+            console.log("iPhone: Starting heartbeat playback");
+            
+            if (!audioActivated) {
+                feedbackDisplay.textContent = "❌ 请先点击屏幕激活音频";
+                return;
+            }
+            
+            if (!audioContext) {
+                feedbackDisplay.textContent = "❌ 音频系统未就绪";
+                return;
+            }
+            
+            if (audioContext.state === 'suspended') {
+                audioContext.resume().then(() => {
+                    startIPhoneHeartbeatPattern();
+                }).catch(err => {
+                    feedbackDisplay.textContent = "❌ 音频启动失败，请重试";
+                });
+                return;
+            }
+            
+            startIPhoneHeartbeatPattern();
+        }
+
+        function startIPhoneHeartbeatPattern() {
+            stopAllHeartbeats();
+            feedbackDisplay.textContent = "🎵 播放心跳声中...";
+            
+            if (currentMode === 'normal') {
+                // 播放第一声
+                playIPhoneSingleBeat();
+                
+                // 设置循环
+                const interval = (60 / targetFrequency) * 1000;
+                heartbeatInterval = setInterval(() => {
+                    playIPhoneSingleBeat();
+                }, interval);
+                
+                // 5秒后停止
+                setTimeout(() => {
+                    stopAllHeartbeats();
+                    feedbackDisplay.textContent = "播放完成";
+                }, 5000);
+            } else {
+                // 不规则模式
+                startIPhoneIrregularHeartbeat();
+            }
+        }
+
+        function startIPhoneIrregularHeartbeat() {
+            if (irregularHeartbeatInterval) {
+                clearInterval(irregularHeartbeatInterval);
+            }
+            
+            let lastBeatTime = Date.now();
+            let beatCount = 0;
+            
+            function playNextIPhoneBeat() {
+                const now = Date.now();
+                const baseInterval = (60 / targetFrequency) * 1000;
+                const randomFactor = 0.6 + Math.random() * 0.8;
+                const interval = baseInterval * randomFactor;
+                
+                if (now - lastBeatTime >= interval) {
+                    currentIrregularBPM = Math.round(60000 / interval);
+                    currentBpmDisplay.textContent = "Current: " + currentIrregularBPM + " BPM";
+                    
+                    const success = playIPhoneSingleBeat();
+                    if (success) {
+                        beatCount++;
+                    }
+                    
+                    lastBeatTime = now;
+                }
+                
+                irregularHeartbeatInterval = setTimeout(playNextIPhoneBeat, 30);
+            }
+            
+            playNextIPhoneBeat();
+            
+            setTimeout(() => {
+                stopAllHeartbeats();
+                feedbackDisplay.textContent = `播放完成 (${beatCount} 次心跳)`;
+            }, 5000);
+        }
+
+        // iPhone 调试信息更新
+        function updateIPhoneDebug() {
+            if (iphoneDebug) {
+                const audioState = audioContext ? audioContext.state : 'no context';
+                iphoneDebug.innerHTML = `iPhone: ${isIPhone}<br>Audio: ${audioState}<br>Activated: ${audioActivated}`;
+            }
+        }
+
+        // ==================== 通用函数 ====================
+
         // 新的音频激活和播放函数
         function activateAudioAndPlay() {
             console.log("activateAudioAndPlay called");
             
-            if (!audioContext) {
-                try {
-                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                    console.log("AudioContext created");
-                } catch (e) {
-                    feedbackDisplay.textContent = "Cannot create audio context: " + e.message;
-                    return;
-                }
-            }
-            
-            if (audioContext.state === 'suspended') {
-                console.log("AudioContext suspended, resuming...");
-                audioContext.resume().then(() => {
-                    console.log("AudioContext resumed successfully");
-                    feedbackDisplay.textContent = "Audio activated! Playing heartbeat...";
-                    setTimeout(() => actuallyPlaySound(targetFrequency, currentMode), 100);
-                }).catch(err => {
-                    console.error("AudioContext resume failed:", err);
-                    feedbackDisplay.textContent = "Please tap the screen first, then try again";
-                });
+            if (isIPhone) {
+                playIPhoneHeartbeat();
             } else {
-                console.log("AudioContext already active");
-                actuallyPlaySound(targetFrequency, currentMode);
+                if (!audioContext) {
+                    try {
+                        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    } catch (e) {
+                        feedbackDisplay.textContent = "Cannot create audio: " + e.message;
+                        return;
+                    }
+                }
+                
+                if (audioContext.state === 'suspended') {
+                    audioContext.resume().then(() => {
+                        actuallyPlaySound(targetFrequency, currentMode);
+                    });
+                } else {
+                    actuallyPlaySound(targetFrequency, currentMode);
+                }
             }
         }
 
         function activateAudioAndPlayExample(rate) {
-            if (!audioContext) {
-                try {
-                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                } catch (e) {
-                    feedbackDisplay.textContent = "Cannot create audio context: " + e.message;
+            if (isIPhone) {
+                if (!audioActivated) {
+                    feedbackDisplay.textContent = "请先激活音频";
                     return;
                 }
-            }
-            
-            if (audioContext.state === 'suspended') {
-                audioContext.resume().then(() => {
-                    setTimeout(() => actuallyPlaySound(rate, 'normal'), 100);
-                });
+                playIPhoneSingleBeat(150, 0.3);
             } else {
-                actuallyPlaySound(rate, 'normal');
+                if (!audioContext) {
+                    try {
+                        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    } catch (e) {
+                        feedbackDisplay.textContent = "Cannot create audio context: " + e.message;
+                        return;
+                    }
+                }
+                
+                if (audioContext.state === 'suspended') {
+                    audioContext.resume().then(() => {
+                        setTimeout(() => actuallyPlaySound(rate, 'normal'), 100);
+                    });
+                } else {
+                    actuallyPlaySound(rate, 'normal');
+                }
             }
         }
         
@@ -556,25 +801,43 @@
         function initGame() {
             console.log("initGame started");
             
-            // 移动端检测
-            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-            console.log("Is mobile device:", isMobile);
+            // 设备检测
+            const isIOS = detectIPhone();
             
-            if (isMobile) {
-                mobileHelp.style.display = 'block';
-                feedbackDisplay.textContent = "Tap screen first, then play sound";
-                console.log("Mobile help displayed");
+            if (isIOS) {
+                // iPhone 专用设置
+                fixIPhoneAudio();
+            } else {
+                // 其他移动设备
+                const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+                if (isMobile) {
+                    mobileHelp.style.display = 'block';
+                    feedbackDisplay.textContent = "Tap screen first, then play sound";
+                }
             }
             
             generateTargetFrequency();
             updateDisplays();
             
-            // Set up event listeners
+            // 事件监听器
             playTargetButton.addEventListener('click', activateAudioAndPlay);
             playTargetButton.addEventListener('touchstart', function(e) {
                 e.preventDefault();
-                console.log("Touch event on play button");
                 activateAudioAndPlay();
+            });
+
+            // 测试声音按钮
+            testSoundButton.addEventListener('click', function() {
+                if (isIPhone) {
+                    if (!audioActivated) {
+                        feedbackDisplay.textContent = "请先点击屏幕激活音频";
+                        return;
+                    }
+                    const success = playIPhoneSingleBeat(330, 0.2);
+                    feedbackDisplay.textContent = success ? "✅ 测试声音播放成功" : "❌ 测试声音播放失败";
+                } else {
+                    playTestSound();
+                }
             });
             
             startTapButton.addEventListener('click', startTapping);
@@ -600,7 +863,7 @@
                 });
             });
             
-            // Tap area click handler
+            // Tap area
             tapArea.addEventListener('click', handleTap);
             tapArea.addEventListener('touchstart', function(e) {
                 e.preventDefault();
@@ -609,38 +872,19 @@
                 }
             });
             
-            // 页面触摸激活音频
-            document.addEventListener('touchstart', function activateOnTouch() {
-                console.log("Screen touched - activating audio");
-                if (audioContext && audioContext.state === 'suspended') {
-                    audioContext.resume().then(() => {
-                        console.log("Audio activated by touch");
-                        feedbackDisplay.textContent = "Audio activated! Ready to play sound";
-                    });
-                }
-            }, { passive: true });
-            
-            // 页面点击激活音频（桌面端）
-            document.addEventListener('click', function activateOnClick() {
-                if (audioContext && audioContext.state === 'suspended') {
-                    audioContext.resume().then(() => {
-                        console.log("Audio activated by click");
-                    });
-                }
-            }, { once: true });
-            
-            // Initialize audio context
+            // 音频上下文初始化
             try {
-                audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                console.log("AudioContext initialized:", audioContext.state);
+                if (!audioContext) {
+                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                }
                 
-                // Initialize voice analyzer
+                // Voice analyzer
                 analyser = audioContext.createAnalyser();
                 analyser.fftSize = 2048;
                 bufferLength = analyser.frequencyBinCount;
                 dataArray = new Uint8Array(bufferLength);
                 
-                // Initialize canvas for voice visualization
+                // Canvas
                 canvasCtx = voiceWaveCanvas.getContext('2d');
                 voiceWaveCanvas.width = voiceWaveCanvas.offsetWidth;
                 voiceWaveCanvas.height = voiceWaveCanvas.offsetHeight;
@@ -649,19 +893,38 @@
                 feedbackDisplay.textContent = "Audio is not supported in your browser. Visual matching only.";
             }
 
+            // 启动调试信息更新
+            setInterval(updateIPhoneDebug, 1000);
+            
             console.log("initGame completed");
         }
+
+        // 测试声音（非iPhone设备）
+        function playTestSound() {
+            if (!audioContext) return;
+            
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.frequency.setValueAtTime(440, audioContext.currentTime);
+            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.3);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.3);
+        }
         
-        // Switch between modes
+        // 原有的通用函数保持不变
         function switchMode(mode) {
             currentMode = mode;
             stopAllHeartbeats();
             
-            // Update UI
             normalModeButton.classList.toggle('active', mode === 'normal');
             irregularModeButton.classList.toggle('active', mode === 'irregular');
             
-            // Update description
             if (mode === 'normal') {
                 modeDescription.textContent = "Match the target heart rhythm by tapping or using your voice. In this mode, you'll match a regular, healthy heartbeat pattern typical of someone in love.";
             } else {
@@ -672,7 +935,6 @@
             updateDisplays();
         }
         
-        // Generate target frequency based on mode
         function generateTargetFrequency() {
             if (currentMode === 'normal') {
                 targetFrequency = Math.floor(Math.random() * 20) + 60;
@@ -683,7 +945,6 @@
             }
         }
         
-        // Stop all heartbeat sounds
         function stopAllHeartbeats() {
             if (heartbeatInterval) {
                 clearInterval(heartbeatInterval);
@@ -696,27 +957,7 @@
             currentBpmDisplay.textContent = "";
         }
         
-        // Play a single heartbeat sound
-        function playSingleBeat() {
-            if (!audioContext) return;
-            
-            const oscillator = audioContext.createOscillator();
-            const gainNode = audioContext.createGain();
-            
-            oscillator.connect(gainNode);
-            gainNode.connect(audioContext.destination);
-            
-            oscillator.frequency.setValueAtTime(150, audioContext.currentTime);
-            gainNode.gain.setValueAtTime(0.5, audioContext.currentTime);
-            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.15);
-            
-            oscillator.start(audioContext.currentTime);
-            oscillator.stop(audioContext.currentTime + 0.15);
-        }
-        
-        // 实际的播放逻辑
         function actuallyPlaySound(rate, mode) {
-            console.log("actuallyPlaySound called with rate:", rate, "mode:", mode);
             stopAllHeartbeats();
             
             if (mode === 'normal') {
@@ -735,7 +976,23 @@
             }
         }
         
-        // Start irregular heartbeat
+        function playSingleBeat() {
+            if (!audioContext) return;
+            
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.frequency.setValueAtTime(150, audioContext.currentTime);
+            gainNode.gain.setValueAtTime(0.5, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.15);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.15);
+        }
+        
         function startIrregularHeartbeat() {
             if (irregularHeartbeatInterval) {
                 clearInterval(irregularHeartbeatInterval);
@@ -762,7 +1019,6 @@
             playIrregularBeat();
         }
         
-        // Start round timer
         function startRoundTimer() {
             if (roundTimer) {
                 clearInterval(roundTimer);
@@ -784,7 +1040,6 @@
             }, 1000);
         }
         
-        // Handle tap event
         function handleTap() {
             if (startTapButton.disabled && !stopTapButton.disabled) {
                 tapCount++;
@@ -792,7 +1047,6 @@
             }
         }
         
-        // Start tapping
         function startTapping() {
             tapStartTime = Date.now();
             tapCount = 0;
@@ -814,7 +1068,6 @@
             }, 5000);
         }
         
-        // Start irregular tap evaluation
         function startIrregularTapEvaluation() {
             if (tapInterval) {
                 clearInterval(tapInterval);
@@ -832,7 +1085,6 @@
             }, 500);
         }
         
-        // Stop tapping
         function stopTapping() {
             tapArea.classList.remove('active');
             startTapButton.disabled = false;
@@ -846,17 +1098,10 @@
             const elapsedTime = (Date.now() - tapStartTime) / 1000;
             const averageBPM = (tapCount / elapsedTime) * 60;
             
-            console.log("Tap Results:", {
-                taps: tapCount,
-                time: elapsedTime,
-                bpm: averageBPM
-            });
-            
             const similarity = calculateSimilarity(averageBPM);
             updateScore(similarity);
         }
         
-        // Calculate similarity
         function calculateSimilarity(userBPM) {
             let targetBPM = currentMode === 'normal' ? targetFrequency : currentIrregularBPM;
             
@@ -867,7 +1112,6 @@
             return Math.round(similarity);
         }
         
-        // Start voice recording
         function startVoiceRecording() {
             if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
                 feedbackDisplay.textContent = "Your browser doesn't support voice recording. Please use tap matching.";
@@ -909,7 +1153,6 @@
                 });
         }
         
-        // Stop voice recording
         function stopVoiceRecording() {
             if (mediaRecorder && isRecording) {
                 mediaRecorder.stop();
@@ -920,7 +1163,6 @@
             }
         }
         
-        // Draw voice waveform
         function drawVoiceWaveform() {
             if (!isRecording) return;
             
@@ -955,7 +1197,6 @@
             canvasCtx.stroke();
         }
         
-        // Analyze voice recording
         function analyzeVoiceRecording() {
             const recordingDuration = 5;
             const estimatedBeats = Math.floor(Math.random() * 10) + 5;
@@ -965,7 +1206,6 @@
             updateScore(similarity);
         }
         
-        // Update score
         function updateScore(similarity) {
             scoreDisplay.textContent = similarity + "%";
             totalScore += similarity;
@@ -992,7 +1232,6 @@
             updateDisplays();
         }
         
-        // Next round
         function nextRound() {
             round++;
             generateTargetFrequency();
@@ -1014,7 +1253,6 @@
             updateDisplays();
         }
         
-        // Update displays
         function updateDisplays() {
             roundDisplay.textContent = round;
             totalScoreDisplay.textContent = totalScore;
