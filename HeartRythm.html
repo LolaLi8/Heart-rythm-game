@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Heart Rhythm Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .screen {
+            display: none;
+            width: 100%;
+            max-width: 500px;
+            text-align: center;
+        }
+        
+        .active {
+            display: block;
+        }
+        
+        h1 {
+            font-size: 2.8rem;
+            margin-bottom: 40px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        h2 {
+            font-size: 2.2rem;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .mode-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            margin: 40px 0;
+        }
+        
+        .mode-button {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 2px solid white;
+            padding: 20px 30px;
+            border-radius: 50px;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .mode-button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-3px);
+        }
+        
+        .target-display {
+            font-size: 3.5rem;
+            font-weight: bold;
+            margin: 30px 0;
+            color: #ffeb3b;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .play-button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-size: 1.3rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin: 20px 0;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        .play-button:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+        }
+        
+        .match-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin: 30px 0;
+        }
+        
+        .match-button {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            border: 2px solid white;
+            padding: 18px 25px;
+            border-radius: 50px;
+            font-size: 1.3rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .match-button:hover {
+            background: rgba(255, 255, 255, 0.25);
+        }
+        
+        .tap-area {
+            width: 100%;
+            height: 200px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin: 20px 0;
+            user-select: none;
+        }
+        
+        .tap-area.active {
+            background: rgba(76, 175, 80, 0.3);
+        }
+        
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+            justify-content: center;
+        }
+        
+        .control-button {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+        
+        .record-button {
+            background: #f44336;
+            color: white;
+        }
+        
+        .record-button:hover {
+            background: #d32f2f;
+        }
+        
+        .stop-button {
+            background: #607d8b;
+            color: white;
+        }
+        
+        .stop-button:hover {
+            background: #455a64;
+        }
+        
+        .score-display {
+            font-size: 4rem;
+            font-weight: bold;
+            margin: 30px 0;
+            color: #4CAF50;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .feedback {
+            font-size: 1.4rem;
+            margin: 20px 0;
+        }
+        
+        .next-button {
+            background: #2196F3;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-size: 1.3rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 30px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        .next-button:hover {
+            background: #0b7dda;
+            transform: translateY(-2px);
+        }
+        
+        .instructions {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 15px;
+            margin: 30px 0;
+            text-align: left;
+            font-size: 1.1rem;
+            line-height: 1.6;
+        }
+        
+        .instructions h3 {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+        
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 2.2rem;
+            }
+            
+            h2 {
+                font-size: 1.8rem;
+            }
+            
+            .target-display {
+                font-size: 2.8rem;
+            }
+            
+            .mode-button, .match-button {
+                font-size: 1.2rem;
+                padding: 15px 20px;
+            }
+        }
+        
+        .audio-warning {
+            background: rgba(255, 193, 7, 0.2);
+            border: 1px solid #ffc107;
+            padding: 10px;
+            border-radius: 10px;
+            margin: 15px 0;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- 主菜单屏幕 -->
+    <div id="main-screen" class="screen active">
+        <h1>Heart Rhythm Game</h1>
+        
+        <div class="instructions">
+            <h3>How to Play</h3>
+            <p>1. Choose a heart rhythm mode</p>
+            <p>2. Listen to the target rhythm</p>
+            <p>3. Match it by tapping or using your voice</p>
+            <p>4. Get as close as possible to the target</p>
+        </div>
+        
+        <div class="mode-buttons">
+            <button class="mode-button" id="love-mode">In Love (Calm, Secure)</button>
+            <button class="mode-button" id="heartbreak-mode">Heartbroken</button>
+        </div>
+    </div>
+
+    <!-- 目标频率屏幕 -->
+    <div id="target-screen" class="screen">
+        <h2 id="mode-title">In Love (Calm, Secure)</h2>
+        <div class="target-display" id="target-frequency">72 BPM</div>
+        
+        <div class="audio-warning">
+            Note: For best audio experience, use headphones or increase volume
+        </div>
+        
+        <button class="play-button" id="play-target">Play Heartbeat</button>
+        
+        <div class="match-buttons">
+            <button class="match-button" id="tap-match">Tap to Match</button>
+            <button class="match-button" id="voice-match">Voice Match</button>
+        </div>
+        
+        <button class="next-button" id="back-to-main">Back</button>
+    </div>
+
+    <!-- 点击匹配屏幕 -->
+    <div id="tap-screen" class="screen">
+        <h2>Tap Matching</h2>
+        <div class="target-display" id="tap-target-frequency">72 BPM</div>
+        
+        <div class="tap-area" id="tap-area">
+            Tap here to match rhythm
+        </div>
+        
+        <div class="controls">
+            <button class="control-button record-button" id="start-tap">Start</button>
+            <button class="control-button stop-button" id="stop-tap" disabled>Stop</button>
+        </div>
+        
+        <button class="next-button" id="back-to-target">Back</button>
+    </div>
+
+    <!-- 语音匹配屏幕 -->
+    <div id="voice-screen" class="screen">
+        <h2>Voice Matching</h2>
+        <div class="target-display" id="voice-target-frequency">72 BPM</div>
+        
+        <div class="controls">
+            <button class="control-button record-button" id="start-voice">Start Recording</button>
+            <button class="control-button stop-button" id="stop-voice" disabled>Stop</button>
+        </div>
+        
+        <button class="next-button" id="back-to-target-voice">Back</button>
+    </div>
+
+    <!-- 结果屏幕 -->
+    <div id="result-screen" class="screen">
+        <h2>Your Result</h2>
+        <div class="score-display" id="score">0%</div>
+        <div class="feedback" id="feedback">Waiting for your match...</div>
+        
+        <div class="controls">
+            <button class="next-button" id="try-again">Try Again</button>
+            <button class="next-button" id="new-round">New Round</button>
+        </div>
+    </div>
+
+    <script>
+        // 游戏状态
+        let currentMode = 'love';
+        let targetFrequency = 72;
+        let currentScore = 0;
+        let audioInitialized = false;
+        
+        // 音频变量
+        let audioContext;
+        let heartbeatInterval;
+        
+        // 点击匹配变量
+        let tapStartTime;
+        let tapCount = 0;
+        
+        // 语音记录变量
+        let mediaRecorder;
+        let isRecording = false;
+
+        // 屏幕元素
+        const screens = {
+            main: document.getElementById('main-screen'),
+            target: document.getElementById('target-screen'),
+            tap: document.getElementById('tap-screen'),
+            voice: document.getElementById('voice-screen'),
+            result: document.getElementById('result-screen')
+        };
+
+        // 初始化音频上下文
+        function initAudioContext() {
+            if (audioInitialized) return;
+            
+            try {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                audioInitialized = true;
+                console.log("Audio context initialized");
+            } catch (e) {
+                console.log("Audio not supported:", e);
+            }
+        }
+
+        // 显示特定屏幕
+        function showScreen(screenName) {
+            // 隐藏所有屏幕
+            Object.values(screens).forEach(screen => {
+                screen.classList.remove('active');
+            });
+            
+            // 显示目标屏幕
+            screens[screenName].classList.add('active');
+        }
+
+        // 生成目标频率
+        function generateTargetFrequency() {
+            if (currentMode === 'love') {
+                // In Love: 60-80 BPM (calm, secure)
+                targetFrequency = Math.floor(Math.random() * 21) + 60; // 60-80 BPM
+            } else {
+                // Heartbroken: 80-120 BPM (faster, regular)
+                targetFrequency = Math.floor(Math.random() * 41) + 80; // 80-120 BPM
+            }
+            
+            // 更新所有目标频率显示
+            document.getElementById('target-frequency').textContent = targetFrequency + " BPM";
+            document.getElementById('tap-target-frequency').textContent = targetFrequency + " BPM";
+            document.getElementById('voice-target-frequency').textContent = targetFrequency + " BPM";
+        }
+
+        // 播放单次心跳声
+        function playSingleBeat() {
+            if (!audioContext) return;
+            
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            // 使用更明显的频率和音量，让手机扬声器也能听到
+            oscillator.frequency.setValueAtTime(200, audioContext.currentTime); // 提高频率
+            oscillator.type = 'sine';
+            
+            gainNode.gain.setValueAtTime(0.8, audioContext.currentTime); // 提高音量
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.2);
+        }
+
+        // 播放心跳声
+        function playHeartbeatSound() {
+            // 确保音频上下文已初始化
+            initAudioContext();
+            
+            // 在移动设备上，我们需要在用户手势后恢复音频上下文
+            if (audioContext && audioContext.state === 'suspended') {
+                audioContext.resume().then(() => {
+                    console.log("Audio context resumed");
+                    startHeartbeat();
+                });
+            } else {
+                startHeartbeat();
+            }
+        }
+
+        // 开始心跳
+        function startHeartbeat() {
+            stopAllHeartbeats();
+            
+            // 播放第一次心跳
+            playSingleBeat();
+            
+            // 设置心跳间隔
+            const interval = (60 / targetFrequency) * 1000;
+            heartbeatInterval = setInterval(playSingleBeat, interval);
+            
+            // 5秒后自动停止
+            setTimeout(() => {
+                stopAllHeartbeats();
+            }, 5000);
+        }
+
+        // 停止所有心跳声
+        function stopAllHeartbeats() {
+            if (heartbeatInterval) {
+                clearInterval(heartbeatInterval);
+                heartbeatInterval = null;
+            }
+        }
+
+        // 计算相似度
+        function calculateSimilarity(userBPM) {
+            const difference = Math.abs(targetFrequency - userBPM);
+            const maxDifference = Math.max(targetFrequency, 120 - targetFrequency);
+            const similarity = Math.max(0, 100 - (difference / maxDifference) * 100);
+            
+            return Math.round(similarity);
+        }
+
+        // 更新分数
+        function updateScore(similarity) {
+            currentScore = similarity;
+            document.getElementById('score').textContent = currentScore + "%";
+            
+            // 提供反馈
+            const feedback = document.getElementById('feedback');
+            if (similarity >= 90) {
+                feedback.textContent = "Perfect match! Excellent!";
+                feedback.style.color = "#4CAF50";
+            } else if (similarity >= 70) {
+                feedback.textContent = "Great! Close to the target heart rate.";
+                feedback.style.color = "#8BC34A";
+            } else if (similarity >= 50) {
+                feedback.textContent = "Good, but there's room for improvement.";
+                feedback.style.color = "#FFC107";
+            } else {
+                feedback.textContent = "Need more practice. Try again!";
+                feedback.style.color = "#F44336";
+            }
+            
+            showScreen('result');
+        }
+
+        // 初始化游戏
+        function initGame() {
+            // 主菜单按钮
+            document.getElementById('love-mode').addEventListener('click', function() {
+                currentMode = 'love';
+                document.getElementById('mode-title').textContent = "In Love (Calm, Secure)";
+                generateTargetFrequency();
+                showScreen('target');
+            });
+            
+            document.getElementById('heartbreak-mode').addEventListener('click', function() {
+                currentMode = 'heartbreak';
+                document.getElementById('mode-title').textContent = "Heartbroken";
+                generateTargetFrequency();
+                showScreen('target');
+            });
+            
+            // 目标屏幕按钮
+            document.getElementById('play-target').addEventListener('click', playHeartbeatSound);
+            
+            document.getElementById('tap-match').addEventListener('click', function() {
+                showScreen('tap');
+            });
+            
+            document.getElementById('voice-match').addEventListener('click', function() {
+                showScreen('voice');
+            });
+            
+            document.getElementById('back-to-main').addEventListener('click', function() {
+                showScreen('main');
+            });
+            
+            // 点击匹配屏幕
+            document.getElementById('start-tap').addEventListener('click', startTapping);
+            document.getElementById('stop-tap').addEventListener('click', stopTapping);
+            document.getElementById('back-to-target').addEventListener('click', function() {
+                showScreen('target');
+            });
+            
+            // 点击区域
+            document.getElementById('tap-area').addEventListener('click', function() {
+                if (document.getElementById('start-tap').disabled && 
+                    !document.getElementById('stop-tap').disabled) {
+                    tapCount++;
+                    this.textContent = `Taps: ${tapCount}`;
+                }
+            });
+            
+            // 语音匹配屏幕
+            document.getElementById('start-voice').addEventListener('click', startVoiceRecording);
+            document.getElementById('stop-voice').addEventListener('click', stopVoiceRecording);
+            document.getElementById('back-to-target-voice').addEventListener('click', function() {
+                showScreen('target');
+            });
+            
+            // 结果屏幕
+            document.getElementById('try-again').addEventListener('click', function() {
+                if (currentMode === 'love') {
+                    showScreen('tap');
+                } else {
+                    showScreen('voice');
+                }
+            });
+            
+            document.getElementById('new-round').addEventListener('click', function() {
+                generateTargetFrequency();
+                showScreen('target');
+            });
+            
+            // 初始化目标频率
+            generateTargetFrequency();
+            
+            // 在用户首次交互时初始化音频
+            document.addEventListener('click', function initAudioOnFirstClick() {
+                initAudioContext();
+                document.removeEventListener('click', initAudioOnFirstClick);
+            }, { once: true });
+        }
+
+        // 开始点击
+        function startTapping() {
+            tapStartTime = Date.now();
+            tapCount = 0;
+            document.getElementById('tap-area').classList.add('active');
+            document.getElementById('start-tap').disabled = true;
+            document.getElementById('stop-tap').disabled = false;
+            document.getElementById('tap-area').textContent = "Tap!";
+            
+            // 5秒后自动停止
+            setTimeout(() => {
+                if (!document.getElementById('stop-tap').disabled) {
+                    stopTapping();
+                }
+            }, 5000);
+        }
+
+        // 停止点击
+        function stopTapping() {
+            document.getElementById('tap-area').classList.remove('active');
+            document.getElementById('start-tap').disabled = false;
+            document.getElementById('stop-tap').disabled = true;
+            
+            const elapsedTime = (Date.now() - tapStartTime) / 1000;
+            const averageBPM = (tapCount / elapsedTime) * 60;
+            
+            const similarity = calculateSimilarity(averageBPM);
+            updateScore(similarity);
+        }
+
+        // 开始语音记录
+        function startVoiceRecording() {
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                alert("Your browser doesn't support voice recording. Please use tap matching.");
+                return;
+            }
+            
+            navigator.mediaDevices.getUserMedia({ audio: true })
+                .then(stream => {
+                    mediaRecorder = new MediaRecorder(stream);
+                    
+                    mediaRecorder.start();
+                    isRecording = true;
+                    document.getElementById('start-voice').disabled = true;
+                    document.getElementById('stop-voice').disabled = false;
+                    
+                    // 5秒后自动停止
+                    setTimeout(() => {
+                        if (isRecording) {
+                            stopVoiceRecording();
+                        }
+                    }, 5000);
+                })
+                .catch(err => {
+                    console.error('Error accessing microphone:', err);
+                    alert("Cannot access microphone. Please check permissions.");
+                });
+        }
+
+        // 停止语音记录
+        function stopVoiceRecording() {
+            if (mediaRecorder && isRecording) {
+                mediaRecorder.stop();
+                isRecording = false;
+                document.getElementById('start-voice').disabled = false;
+                document.getElementById('stop-voice').disabled = true;
+                mediaRecorder.stream.getTracks().forEach(track => track.stop());
+                
+                // 模拟语音分析结果
+                const estimatedBPM = targetFrequency + (Math.random() * 40 - 20);
+                const similarity = calculateSimilarity(estimatedBPM);
+                updateScore(similarity);
+            }
+        }
+
+        // 启动游戏
+        window.addEventListener('load', initGame);
+    </script>
+</body>
+</html>
